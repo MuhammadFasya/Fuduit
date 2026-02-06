@@ -60,19 +60,29 @@ export default function RootLayout(): JSX.Element {
   const { setUser, setLoading, isLoading } = useAuthStore();
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     const initialize = async () => {
       try {
         // Initialize database
         await initializeDatabase();
+        console.log("[App] Database initialized");
 
         // Setup auth state listener
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        unsubscribe = onAuthStateChanged(auth, (user) => {
+          console.log("[App] Auth state changed:", user ? user.email : "null");
           setUser(user);
+          setIsInitialized(true);
         });
 
-        setIsInitialized(true);
-
-        return () => unsubscribe();
+        // Set a timeout in case Firebase auth doesn't respond
+        setTimeout(() => {
+          if (!isInitialized) {
+            console.log("[App] Auth timeout - proceeding without auth");
+            setLoading(false);
+            setIsInitialized(true);
+          }
+        }, 5000);
       } catch (error) {
         console.error("[App] Initialization error:", error);
         setLoading(false);
@@ -81,10 +91,16 @@ export default function RootLayout(): JSX.Element {
     };
 
     initialize();
-  }, [setUser, setLoading]);
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
 
   // Show loading screen while initializing
-  if (!isInitialized || isLoading) {
+  if (!isInitialized) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <LoadingScreen />
