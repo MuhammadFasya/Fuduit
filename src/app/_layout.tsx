@@ -1,46 +1,21 @@
 import "../global.css";
 
 import { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Text } from "react-native";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
 import { useAuthStore } from "@/store/authStore";
 import { initializeDatabase } from "@/db/migrations";
 
 /**
- * Auth guard component that handles route protection
- */
-function AuthGuard({ children }: { children: React.ReactNode }): JSX.Element {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  const segments = useSegments();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === "(auth)";
-
-    if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to login if not authenticated and not in auth group
-      router.replace("/(auth)/login");
-    } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to home if authenticated and in auth group
-      router.replace("/(tabs)");
-    }
-  }, [isAuthenticated, isLoading, segments, router]);
-
-  return <>{children}</>;
-}
-
-/**
  * Loading screen shown during app initialization
  */
-function LoadingScreen(): JSX.Element {
+function LoadingScreen({ message }: { message?: string }): JSX.Element {
   return (
     <View
       style={{
@@ -51,59 +26,120 @@ function LoadingScreen(): JSX.Element {
       }}
     >
       <ActivityIndicator size="large" color="#a3e635" />
+      {message && (
+        <Text style={{ color: "#a3e635", marginTop: 16 }}>{message}</Text>
+      )}
     </View>
   );
 }
 
 export default function RootLayout(): JSX.Element {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const { setUser, setLoading, isLoading } = useAuthStore();
+  const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const segments = useSegments();
+  const { user, setUser, isAuthenticated } = useAuthStore();
 
+  // Initialize app
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
+    let timeoutId: NodeJS.Timeout;
 
-    const initialize = async () => {
+    const init = async () => {
       try {
-        // Initialize database
-        await initializeDatabase();
-        console.log("[App] Database initialized");
+        console.log("[App] Starting initialization...");
 
-        // Setup auth state listener
-        unsubscribe = onAuthStateChanged(auth, (user) => {
-          console.log("[App] Auth state changed:", user ? user.email : "null");
-          setUser(user);
-          setIsInitialized(true);
+        // Initialize database
+        try {
+          await initializeDatabase();
+          console.log("[App] Database initialized");
+        } catch (dbError) {
+          console.warn("[App] Database init warning:", dbError);
+          // Continue anyway - database might work on retry
+        }
+
+        // Setup Firebase auth listener
+        unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
+          console.log(
+            "[App] Auth state:",
+            firebaseUser?.email ?? "not logged in"
+          );
+          setUser(firebaseUser);
+          setIsReady(true);
         });
 
-        // Set a timeout in case Firebase auth doesn't respond
-        setTimeout(() => {
-          if (!isInitialized) {
-            console.log("[App] Auth timeout - proceeding without auth");
-            setLoading(false);
-            setIsInitialized(true);
+        // Fallback timeout in case Firebase doesn't respond
+        timeoutId = setTimeout(() => {
+          if (!isReady) {
+            console.log("[App] Auth timeout - continuing without auth");
+            setIsReady(true);
           }
         }, 5000);
-      } catch (error) {
-        console.error("[App] Initialization error:", error);
-        setLoading(false);
-        setIsInitialized(true);
+      } catch (err) {
+        console.error("[App] Init error:", err);
+        setError(String(err));
+        setIsReady(true);
       }
     };
 
-    initialize();
+    init();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      if (unsubscribe) unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
-  // Show loading screen while initializing
-  if (!isInitialized) {
+  // Handle navigation based on auth state
+  useEffect(() => {
+    if (!isReady) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const inTabsGroup = segments[0] === "(tabs)";
+
+    console.log(
+      "[App] Navigation check - isAuthenticated:",
+      isAuthenticated,
+      "inAuthGroup:",
+      inAuthGroup
+    );
+
+    if (isAuthenticated && inAuthGroup) {
+      // Logged in user in auth screens -> go to tabs
+      router.replace("/(tabs)");
+    } else if (!isAuthenticated && inTabsGroup) {
+      // Not logged in user in tabs -> go to login
+      router.replace("/(auth)/login");
+    } else if (!isAuthenticated && !inAuthGroup && !inTabsGroup) {
+      // Not logged in and not in any group -> go to login
+      router.replace("/(auth)/login");
+    }
+  }, [isReady, isAuthenticated, segments, router]);
+
+  if (!isReady) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <LoadingScreen />
+        <LoadingScreen message="Loading..." />
+      </GestureHandlerRootView>
+    );
+  }
+
+  if (error) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#121212",
+            padding: 20,
+          }}
+        >
+          <Text style={{ color: "#ef4444", fontSize: 16, textAlign: "center" }}>
+            Error: {error}
+          </Text>
+        </View>
       </GestureHandlerRootView>
     );
   }
@@ -112,9 +148,7 @@ export default function RootLayout(): JSX.Element {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="light" />
-        <AuthGuard>
-          <Slot />
-        </AuthGuard>
+        <Slot />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

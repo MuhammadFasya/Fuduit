@@ -7,14 +7,17 @@
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
+  Image,
 } from "react-native";
 import { useState } from "react";
 import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Mail, Lock, Eye, EyeOff, Wallet } from "lucide-react-native";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { GoogleIcon } from "@/components/ui/SocialIcons";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -64,14 +67,11 @@ export default function LoginScreen() {
           <View className="flex-1 px-6 justify-center">
             <View className="items-center mb-10">
               <View className="w-20 h-20 rounded-2xl overflow-hidden mb-4">
-                <LinearGradient
-                  colors={["#4ADE80", "#22C55E"]}
-                  className="flex-1 items-center justify-center"
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Wallet size={40} color="#121212" strokeWidth={2} />
-                </LinearGradient>
+                <Image
+                  source={require("../../../assets/icon.png")}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
               </View>
               <Text className="text-5xl font-bold text-white mb-2">Fuduit</Text>
               <Text className="text-gray text-base">
@@ -142,9 +142,17 @@ export default function LoginScreen() {
                 <View className="flex-1 h-px bg-border" />
               </View>
 
-              <Pressable className="bg-surface h-[56px] rounded-full flex-row items-center justify-center">
-                <View className="w-5 h-5 mr-3">
-                  <View className="w-5 h-5 rounded-full bg-white" />
+              <Pressable
+                className="bg-surface h-[56px] rounded-full flex-row items-center justify-center opacity-50"
+                onPress={() =>
+                  Alert.alert(
+                    "Coming Soon",
+                    "Google sign-in will be available in a future update."
+                  )
+                }
+              >
+                <View className="mr-3">
+                  <GoogleIcon size={20} />
                 </View>
                 <Text className="text-white text-base font-medium">
                   Continue with Google

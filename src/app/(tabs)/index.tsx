@@ -5,6 +5,7 @@
   Pressable,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,10 +28,12 @@ import {
   filterCurrentMonth,
 } from "@/features/transactions/hooks";
 import { useAuthStore } from "@/store/authStore";
+import { useSettingsStore, formatAmount } from "@/store/settingsStore";
 import { AnimatedProgress, AnimatedButton } from "@/components/ui/Animated";
 
 export default function HomeScreen() {
   const { user } = useAuthStore();
+  const { currency } = useSettingsStore();
   const { transactions, isLoading, fetchTransactions } = useTransactions();
 
   const currentMonthTransactions = filterCurrentMonth(transactions);
@@ -41,9 +44,7 @@ export default function HomeScreen() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  const formatCurrency = (amount: number): string => {
-    return `$${Math.abs(amount).toFixed(2)}`;
-  };
+  const formatCurrency = (amount: number) => formatAmount(amount, currency);
 
   const getGreeting = (): string => {
     const hour = new Date().getHours();
@@ -105,32 +106,34 @@ export default function HomeScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-6 pt-4 pb-4">
           <View className="flex-row items-center gap-3">
-            <View className="relative">
-              <View className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 bg-surface">
-                <Image
-                  source={{
-                    uri:
-                      "https://ui-avatars.com/api/?name=" +
-                      getUserName() +
-                      "&background=1E1E1E&color=a3e637",
-                  }}
-                  className="w-full h-full"
-                />
-              </View>
-              <View className="absolute bottom-0 right-0 w-3 h-3 bg-primary rounded-full border-2 border-dark" />
+            <View className="w-10 h-10 rounded-xl overflow-hidden">
+              <Image
+                source={require("../../../assets/icon.png")}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
             </View>
-            <View>
-              <Text className="text-white/60 text-xs font-medium">
-                {getGreeting()},
-              </Text>
-              <Text className="text-white text-lg font-bold">
-                {getUserName()}
-              </Text>
-            </View>
+            <Text className="text-xl font-bold text-white">Fuduit</Text>
           </View>
-          <Pressable className="w-10 h-10 items-center justify-center rounded-full bg-surface">
+          <Pressable
+            className="w-10 h-10 items-center justify-center rounded-full bg-surface"
+            onPress={() =>
+              Alert.alert(
+                "Coming Soon",
+                "Notifications feature will be available in a future update."
+              )
+            }
+          >
             <Bell size={20} color="#ffffff" />
           </Pressable>
+        </View>
+
+        {/* Greeting Section */}
+        <View className="px-6 pb-4">
+          <Text className="text-white/60 text-sm font-medium">
+            {getGreeting()},
+          </Text>
+          <Text className="text-white text-2xl font-bold">{getUserName()}</Text>
         </View>
 
         {/* Balance Section */}

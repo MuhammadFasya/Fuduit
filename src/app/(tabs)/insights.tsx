@@ -5,6 +5,7 @@
   Pressable,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useEffect, useState, useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,6 +31,7 @@ import {
   filterLastNDays,
 } from "@/features/transactions/hooks";
 import { useAuthStore } from "@/store/authStore";
+import { useSettingsStore, formatAmount } from "@/store/settingsStore";
 
 type InsightType = "win" | "income" | "alert" | "info";
 type FilterType = "all" | "habits" | "income" | "wins";
@@ -49,8 +51,11 @@ interface Insight {
 
 export default function InsightsScreen() {
   const { user } = useAuthStore();
+  const { currency } = useSettingsStore();
   const { transactions, isLoading, fetchTransactions } = useTransactions();
   const [filter, setFilter] = useState<FilterType>("all");
+
+  const formatCurrency = (amount: number) => formatAmount(amount, currency);
 
   const allTimeStats = useTransactionStats(transactions);
   const monthlyStats = useTransactionStats(filterCurrentMonth(transactions));
@@ -67,12 +72,6 @@ export default function InsightsScreen() {
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
-
-  const getUserName = (): string => {
-    if (user?.displayName) return user.displayName.split(" ")[0];
-    if (user?.email) return user.email.split("@")[0];
-    return "User";
-  };
 
   // Generate smart insights based on transaction data
   const insights = useMemo((): Insight[] => {
@@ -116,7 +115,7 @@ export default function InsightsScreen() {
             emoji: isCoffee ? "☕" : isFood ? "🍕" : "🎉",
             label: "Weekly Win",
             title: `You spent less on ${cat} this week!`,
-            amount: `Saved $${saved.toFixed(2)}`,
+            amount: `Saved ${formatCurrency(saved)}`,
             amountLabel: "vs. last week",
           });
         }
@@ -143,7 +142,7 @@ export default function InsightsScreen() {
           label: "Income",
           title: `${recentIncome.note || recentIncome.category} just landed.`,
           subtitle: recentIncome.category,
-          amount: `+$${recentIncome.amount.toFixed(2)}`,
+          amount: `+${formatCurrency(recentIncome.amount)}`,
           actionLabel: "Stash for Taxes",
         });
       }
@@ -205,7 +204,7 @@ export default function InsightsScreen() {
           emoji: "📺",
           label: "Subscription",
           title: "Monthly subscriptions paid.",
-          subtitle: `$${monthlySubTotal.toFixed(2)} total this month ✔`,
+          subtitle: `${formatCurrency(monthlySubTotal)} total this month ✔`,
         });
       }
     }
@@ -218,7 +217,7 @@ export default function InsightsScreen() {
         emoji: "💰",
         label: "Money Win",
         title: "You're in the green this month!",
-        amount: `+$${monthlyStats.balance.toFixed(2)}`,
+        amount: `+${formatCurrency(monthlyStats.balance)}`,
         amountLabel: "net positive",
       });
     }
@@ -235,7 +234,7 @@ export default function InsightsScreen() {
         emoji: "⚠️",
         label: "Budget Alert",
         title: "You're spending more than you earn this month.",
-        extraInfo: `$${overspend.toFixed(2)} over budget`,
+        extraInfo: `${formatCurrency(overspend)} over budget`,
       });
     }
 
@@ -299,23 +298,25 @@ export default function InsightsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-dark">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-6 pt-4 pb-2">
-        <View className="w-12 h-12 items-start justify-center">
-          <View className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 bg-surface">
-            <Image
-              source={{
-                uri:
-                  "https://ui-avatars.com/api/?name=" +
-                  getUserName() +
-                  "&background=1E1E1E&color=a3e637",
-              }}
-              className="w-full h-full"
-            />
-          </View>
+      <View className="flex-row items-center justify-between px-6 pt-4 pb-4">
+        <View className="w-10 h-10 rounded-xl overflow-hidden">
+          <Image
+            source={require("../../../assets/icon.png")}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
         </View>
-        <Text className="text-xl font-bold text-white">Your Money Flow</Text>
-        <Pressable className="w-12 h-12 items-center justify-center">
-          <Bell size={24} color="#ffffff" />
+        <Text className="text-xl font-bold text-white">Insights</Text>
+        <Pressable
+          className="w-10 h-10 items-center justify-center rounded-full bg-surface"
+          onPress={() =>
+            Alert.alert(
+              "Coming Soon",
+              "Notifications feature will be available in a future update."
+            )
+          }
+        >
+          <Bell size={20} color="#ffffff" />
         </Pressable>
       </View>
 
@@ -345,7 +346,8 @@ export default function InsightsScreen() {
             }
           >
             <Text
-              className={`text-sm font-bold ${filter === "all" ? "text-dark" : "text-gray"}`}
+              style={{ color: filter === "all" ? "#1a1a1a" : "#ffffff" }}
+              className={`text-sm font-bold`}
             >
               All
             </Text>
@@ -359,7 +361,8 @@ export default function InsightsScreen() {
             }`}
           >
             <Text
-              className={`text-sm font-medium ${filter === "habits" ? "text-dark" : "text-gray"}`}
+              style={{ color: filter === "habits" ? "#1a1a1a" : "#ffffff" }}
+              className={`text-sm font-medium`}
             >
               ☕ Habits
             </Text>
@@ -373,7 +376,8 @@ export default function InsightsScreen() {
             }`}
           >
             <Text
-              className={`text-sm font-medium ${filter === "income" ? "text-dark" : "text-gray"}`}
+              style={{ color: filter === "income" ? "#1a1a1a" : "#ffffff" }}
+              className={`text-sm font-medium`}
             >
               💸 Income
             </Text>
@@ -387,7 +391,8 @@ export default function InsightsScreen() {
             }`}
           >
             <Text
-              className={`text-sm font-medium ${filter === "wins" ? "text-dark" : "text-gray"}`}
+              style={{ color: filter === "wins" ? "#1a1a1a" : "#ffffff" }}
+              className={`text-sm font-medium`}
             >
               🎉 Wins
             </Text>
@@ -476,9 +481,20 @@ export default function InsightsScreen() {
                       {insight.amount}
                     </Text>
                     {insight.actionLabel && (
-                      <Pressable className="flex-row items-center gap-2 bg-primary px-5 py-2.5 rounded-full">
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert(
+                            "Coming Soon",
+                            "This feature will be implemented in the future."
+                          )
+                        }
+                        className="flex-row items-center gap-2 bg-primary px-5 py-2.5 rounded-full"
+                      >
                         <Sparkles size={16} color="#121212" />
-                        <Text className="text-dark text-sm font-bold">
+                        <Text
+                          style={{ color: "#121212" }}
+                          className="text-sm font-bold"
+                        >
                           {insight.actionLabel}
                         </Text>
                       </Pressable>

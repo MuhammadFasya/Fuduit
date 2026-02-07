@@ -7,21 +7,17 @@
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
+  Image,
 } from "react-native";
 import { useState } from "react";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  Wallet,
-} from "lucide-react-native";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { GoogleIcon, AppleIcon } from "@/components/ui/SocialIcons";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -82,17 +78,16 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Header */}
-        <View className="flex-row items-center px-4 py-2">
-          <Pressable
-            onPress={() => router.back()}
-            className="w-12 h-12 items-center justify-center rounded-full"
-          >
-            <ArrowLeft size={24} color="#FFFFFF" />
-          </Pressable>
-          <Text className="flex-1 text-white text-lg font-bold text-center pr-12">
-            Fuduit
-          </Text>
+        {/* Header with Logo */}
+        <View className="items-center px-4 py-4">
+          <View className="w-16 h-16 rounded-2xl overflow-hidden mb-2">
+            <Image
+              source={require("../../../assets/icon.png")}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
+          <Text className="text-white text-xl font-bold">Fuduit</Text>
         </View>
 
         <ScrollView
@@ -217,13 +212,27 @@ export default function RegisterScreen() {
 
             {/* Social Buttons */}
             <View className="flex-row justify-center gap-4">
-              <Pressable className="w-14 h-14 rounded-full bg-surface border border-border items-center justify-center">
-                <View className="w-5 h-5 rounded-full bg-white items-center justify-center">
-                  <Text className="text-dark font-bold text-xs">G</Text>
-                </View>
+              <Pressable
+                className="w-14 h-14 rounded-full bg-surface border border-border items-center justify-center opacity-50"
+                onPress={() =>
+                  Alert.alert(
+                    "Coming Soon",
+                    "Google sign-in will be available in a future update."
+                  )
+                }
+              >
+                <GoogleIcon size={24} />
               </Pressable>
-              <Pressable className="w-14 h-14 rounded-full bg-surface border border-border items-center justify-center">
-                <Wallet size={24} color="#FFFFFF" />
+              <Pressable
+                className="w-14 h-14 rounded-full bg-surface border border-border items-center justify-center opacity-50"
+                onPress={() =>
+                  Alert.alert(
+                    "Coming Soon",
+                    "Apple sign-in will be available in a future update."
+                  )
+                }
+              >
+                <AppleIcon size={24} color="#FFFFFF" />
               </Pressable>
             </View>
 

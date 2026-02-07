@@ -7,7 +7,6 @@ import {
   Switch,
   Alert,
   Image,
-  Linking,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,13 +20,14 @@ import {
   HelpCircle,
   LogOut,
   ChevronRight,
-  ExternalLink,
   User,
 } from "lucide-react-native";
 
 import { useAuth } from "@/features/auth/hooks";
 import { useAuthStore } from "@/store/authStore";
 import { useTransactionStore } from "@/store/transactionStore";
+import { useSettingsStore } from "@/store/settingsStore";
+import { resetDatabase } from "@/db";
 
 interface SettingItemProps {
   icon: React.ReactNode;
@@ -78,10 +78,17 @@ export default function SettingsScreen(): JSX.Element {
   const { user } = useAuthStore();
   const { logout, isLoading } = useAuth();
   const { clearTransactions } = useTransactionStore();
+  const { currency, setCurrency } = useSettingsStore();
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [currency, setCurrency] = useState("USD");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [appearance, setAppearance] = useState("Dark");
+
+  const handleNotificationToggle = (): void => {
+    Alert.alert(
+      "Coming Soon",
+      "Notifications feature will be available in a future update."
+    );
+  };
 
   const handleLogout = (): void => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -106,9 +113,17 @@ export default function SettingsScreen(): JSX.Element {
         {
           text: "Reset",
           style: "destructive",
-          onPress: () => {
-            clearTransactions();
-            Alert.alert("Success", "All data has been reset.");
+          onPress: async () => {
+            try {
+              // Clear Zustand store
+              clearTransactions();
+              // Reset SQLite database
+              await resetDatabase();
+              Alert.alert("Success", "All data has been reset.");
+            } catch (error) {
+              Alert.alert("Error", "Failed to reset data. Please try again.");
+              console.error("Reset data error:", error);
+            }
           },
         },
       ]
@@ -118,28 +133,62 @@ export default function SettingsScreen(): JSX.Element {
   const handleCurrencyPress = (): void => {
     Alert.alert("Select Currency", "Choose your preferred currency", [
       { text: "USD ($)", onPress: () => setCurrency("USD") },
-      { text: "EUR (€)", onPress: () => setCurrency("EUR") },
-      { text: "GBP (£)", onPress: () => setCurrency("GBP") },
-      { text: "JPY (¥)", onPress: () => setCurrency("JPY") },
+      { text: "IDR (Rp)", onPress: () => setCurrency("IDR") },
       { text: "Cancel", style: "cancel" },
     ]);
   };
 
   const handleAppearancePress = (): void => {
-    Alert.alert("Appearance", "Choose your preferred theme", [
-      { text: "Dark", onPress: () => setAppearance("Dark") },
-      { text: "Light", onPress: () => setAppearance("Light") },
-      { text: "System", onPress: () => setAppearance("System") },
-      { text: "Cancel", style: "cancel" },
-    ]);
+    Alert.alert(
+      "Coming Soon",
+      "Appearance customization will be available in a future update."
+    );
   };
 
   const handlePrivacyPolicy = (): void => {
-    Linking.openURL("https://fuduit.app/privacy");
+    Alert.alert(
+      "Coming Soon",
+      "Privacy Policy will be available in a future update."
+    );
   };
 
   const handleHelp = (): void => {
-    Linking.openURL("https://fuduit.app/help");
+    Alert.alert(
+      "Coming Soon",
+      "Help & Support will be available in a future update."
+    );
+  };
+
+  const handleAppInfo = (): void => {
+    Alert.alert(
+      "Fuduit",
+      "Version: 1.0.0\n\nA personal finance tracker app to help you manage your money.\n\nDeveloped by: Muhammad Fasya\n\n© 2026 Fuduit. All rights reserved.",
+      [{ text: "OK" }]
+    );
+  };
+
+  const handleEditProfile = (): void => {
+    Alert.alert("Edit Profile", "Choose what you want to update:", [
+      {
+        text: "Change Username",
+        onPress: () => {
+          Alert.alert(
+            "Coming Soon",
+            "Username editing will be available in a future update."
+          );
+        },
+      },
+      {
+        text: "Change Profile Picture",
+        onPress: () => {
+          Alert.alert(
+            "Coming Soon",
+            "Profile picture editing will be available in a future update."
+          );
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
 
   const userName = user?.displayName || user?.email?.split("@")[0] || "User";
@@ -152,15 +201,24 @@ export default function SettingsScreen(): JSX.Element {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View className="px-6 pt-6 pb-2">
-          <Text className="text-3xl font-bold tracking-tight text-white">
-            Settings
-          </Text>
+        <View className="flex-row items-center justify-between px-6 pt-4 pb-4">
+          <View className="w-10 h-10 rounded-xl overflow-hidden">
+            <Image
+              source={require("../../../assets/icon.png")}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
+          <Text className="text-xl font-bold text-white">Settings</Text>
+          <View className="w-10 h-10" />
         </View>
 
         <View className="px-4 pt-4 gap-6">
           {/* Profile Card */}
-          <Pressable className="flex-row items-center gap-4 bg-surface p-5 rounded-2xl border border-white/5">
+          <Pressable
+            onPress={handleEditProfile}
+            className="flex-row items-center gap-4 bg-surface p-5 rounded-2xl border border-white/5"
+          >
             <View className="relative">
               <View className="h-16 w-16 rounded-full bg-surface-light items-center justify-center border-2 border-primary/20 overflow-hidden">
                 {user?.photoURL ? (
@@ -201,10 +259,11 @@ export default function SettingsScreen(): JSX.Element {
               <SettingItem
                 icon={<Bell size={22} color="#a3e637" />}
                 label="Notifications"
+                onPress={handleNotificationToggle}
                 rightElement={
                   <Switch
                     value={notificationsEnabled}
-                    onValueChange={setNotificationsEnabled}
+                    onValueChange={handleNotificationToggle}
                     trackColor={{ false: "#4b5563", true: "#a3e637" }}
                     thumbColor="#ffffff"
                   />
@@ -256,7 +315,7 @@ export default function SettingsScreen(): JSX.Element {
                 icon={<Lock size={22} color="#d1d5db" />}
                 label="Privacy Policy"
                 onPress={handlePrivacyPolicy}
-                rightElement={<ExternalLink size={20} color="#6b7280" />}
+                rightElement={<ChevronRight size={20} color="#6b7280" />}
               />
               <Divider />
 
@@ -280,8 +339,12 @@ export default function SettingsScreen(): JSX.Element {
               <SettingItem
                 icon={<Info size={22} color="#d1d5db" />}
                 label="App Info"
+                onPress={handleAppInfo}
                 rightElement={
-                  <Text className="text-sm text-gray-500">v1.0.0</Text>
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-sm text-gray-500">v1.0.0</Text>
+                    <ChevronRight size={20} color="#6b7280" />
+                  </View>
                 }
               />
               <Divider />

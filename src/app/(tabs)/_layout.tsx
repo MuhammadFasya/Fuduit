@@ -12,20 +12,16 @@ export default function TabsLayout(): JSX.Element {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: "#ffffff66",
+        tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: `${colors.surface}E6`,
-          borderTopColor: "#ffffff0D",
-          borderTopWidth: 1,
+          borderTopWidth: 0,
           paddingTop: 12,
           paddingBottom: 24,
           height: 80,
           borderTopLeftRadius: 16,
           borderTopRightRadius: 16,
           position: "absolute",
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: "500",
         },
       }}
     >

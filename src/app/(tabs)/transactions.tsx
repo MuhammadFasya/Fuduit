@@ -5,14 +5,13 @@
   Pressable,
   ActivityIndicator,
   Alert,
+  Image,
 } from "react-native";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, Layout } from "react-native-reanimated";
 import {
-  ArrowLeft,
-  MoreHorizontal,
-  Calendar,
+  Bell,
   ShoppingBag,
   Film,
   Briefcase,
@@ -28,13 +27,17 @@ import { router } from "expo-router";
 import { useTransactions } from "@/features/transactions/hooks";
 import { Transaction } from "@/db/schema";
 import { AnimatedButton } from "@/components/ui/Animated";
+import { useSettingsStore, formatAmount } from "@/store/settingsStore";
 
 type FilterType = "all" | "income" | "expense";
 
 export default function TransactionsScreen() {
   const { transactions, isLoading, fetchTransactions, deleteTransaction } =
     useTransactions();
+  const { currency } = useSettingsStore();
   const [filter, setFilter] = useState<FilterType>("all");
+
+  const formatCurrency = (amount: number) => formatAmount(amount, currency);
 
   useEffect(() => {
     fetchTransactions();
@@ -144,10 +147,6 @@ export default function TransactionsScreen() {
     }
   };
 
-  const formatCurrency = (amount: number): string => {
-    return `$${Math.abs(amount).toFixed(2)}`;
-  };
-
   const formatTime = (date: Date): string => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -168,82 +167,88 @@ export default function TransactionsScreen() {
     <SafeAreaView className="flex-1 bg-dark">
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 pt-4 pb-4">
+        <View className="w-10 h-10 rounded-xl overflow-hidden">
+          <Image
+            source={require("../../../assets/icon.png")}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        </View>
+        <Text className="text-xl font-bold text-white">History</Text>
         <Pressable
-          onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center rounded-full bg-surface"
+          onPress={() =>
+            Alert.alert(
+              "Coming Soon",
+              "Notifications feature will be available in a future update."
+            )
+          }
         >
-          <ArrowLeft size={20} color="#ffffff" />
-        </Pressable>
-        <Text className="text-xl font-bold text-white">
-          Transaction History
-        </Text>
-        <Pressable className="w-10 h-10 items-center justify-center rounded-full bg-surface">
-          <MoreHorizontal size={20} color="#ffffff" />
+          <Bell size={20} color="#ffffff" />
         </Pressable>
       </View>
 
       {/* Filters */}
-      <View className="px-6 mb-4">
+      <View className="px-6 py-4">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="py-2"
           contentContainerStyle={{ gap: 12 }}
         >
           <Pressable
             onPress={() => setFilter("all")}
-            className={`px-6 py-2.5 rounded-full ${
+            className={`h-10 px-6 rounded-full items-center justify-center ${
               filter === "all"
                 ? "bg-primary"
-                : "bg-surface border border-white/5"
+                : "bg-surface border border-white/20"
             }`}
             style={
               filter === "all"
                 ? {
                     shadowColor: "#a3e637",
                     shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.3,
+                    shadowOpacity: 0.2,
                     shadowRadius: 15,
                   }
                 : {}
             }
           >
             <Text
-              className={`font-bold text-sm ${filter === "all" ? "text-dark" : "text-gray"}`}
+              className="text-sm font-bold"
+              style={{ color: filter === "all" ? "#121212" : "#ffffff" }}
             >
               All
             </Text>
           </Pressable>
           <Pressable
             onPress={() => setFilter("income")}
-            className={`px-6 py-2.5 rounded-full ${
+            className={`h-10 px-6 rounded-full items-center justify-center ${
               filter === "income"
                 ? "bg-primary"
-                : "bg-surface border border-white/5"
+                : "bg-surface border border-white/20"
             }`}
           >
             <Text
-              className={`font-semibold text-sm ${filter === "income" ? "text-dark" : "text-gray"}`}
+              className="text-sm font-medium"
+              style={{ color: filter === "income" ? "#121212" : "#ffffff" }}
             >
               Income
             </Text>
           </Pressable>
           <Pressable
             onPress={() => setFilter("expense")}
-            className={`px-6 py-2.5 rounded-full ${
+            className={`h-10 px-6 rounded-full items-center justify-center ${
               filter === "expense"
                 ? "bg-primary"
-                : "bg-surface border border-white/5"
+                : "bg-surface border border-white/20"
             }`}
           >
             <Text
-              className={`font-semibold text-sm ${filter === "expense" ? "text-dark" : "text-gray"}`}
+              className="text-sm font-medium"
+              style={{ color: filter === "expense" ? "#121212" : "#ffffff" }}
             >
               Spent
             </Text>
-          </Pressable>
-          <Pressable className="w-10 h-10 items-center justify-center rounded-full bg-surface">
-            <Calendar size={16} color="#9CA3AF" />
           </Pressable>
         </ScrollView>
       </View>
@@ -267,7 +272,7 @@ export default function TransactionsScreen() {
           Object.entries(groupedTransactions).map(
             ([dateKey, dateTransactions]) => (
               <View key={dateKey} className="mb-6">
-                <Text className="px-2 text-sm font-bold text-gray uppercase tracking-wider mb-3">
+                <Text className="px-2 text-sm font-bold text-white/60 uppercase tracking-wider mb-3">
                   {dateKey}
                 </Text>
                 <View className="gap-3">
@@ -306,7 +311,7 @@ export default function TransactionsScreen() {
                           >
                             {transaction.note || transaction.category}
                           </Text>
-                          <Text className="text-xs font-medium text-gray mt-0.5">
+                          <Text className="text-xs font-medium text-white/50 mt-0.5">
                             {transaction.category} •{" "}
                             {formatTime(transaction.date)}
                           </Text>

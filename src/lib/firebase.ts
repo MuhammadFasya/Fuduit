@@ -3,14 +3,14 @@ import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { initializeAuth, getReactNativePersistence, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
-// Firebase configuration - Replace with your actual config values
+// Firebase configuration - using environment variables for security
 const firebaseConfig = {
-  apiKey: "AIzaSyAi2CaiUszAIu5G8_hvzUj4ZysFD72FwRo",
-  authDomain: "fuduit-315e3.firebaseapp.com",
-  projectId: "fuduit-315e3",
-  storageBucket: "fuduit-315e3.firebasestorage.app",
-  messagingSenderId: "311510279900",
-  appId: "1:311510279900:web:4d35d24d8bdb3fa8f57619",
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 let app: FirebaseApp;

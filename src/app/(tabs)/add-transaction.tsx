@@ -32,6 +32,7 @@ import {
 } from "lucide-react-native";
 
 import { useTransactions } from "@/features/transactions/hooks";
+import { useSettingsStore } from "@/store/settingsStore";
 
 type TransactionType = "income" | "expense";
 
@@ -65,6 +66,8 @@ export default function AddTransactionScreen(): JSX.Element {
 
   const { addTransaction, updateTransaction, getTransactionById, isLoading } =
     useTransactions();
+  const { currency } = useSettingsStore();
+  const currencySymbol = currency === "USD" ? "$" : "Rp";
 
   useEffect(() => {
     const loadTransaction = async () => {
@@ -171,7 +174,12 @@ export default function AddTransactionScreen(): JSX.Element {
 
           {/* Type Toggle */}
           <View className="mt-6">
-            <Text className="text-sm font-medium text-gray-400 mb-3">Type</Text>
+            <Text
+              style={{ color: "#9ca3af" }}
+              className="text-sm font-medium mb-3"
+            >
+              Type
+            </Text>
             <View className="flex-row bg-surface rounded-xl p-1">
               <Pressable
                 onPress={() => {
@@ -188,11 +196,10 @@ export default function AddTransactionScreen(): JSX.Element {
                   color={type === "expense" ? "#ef4444" : "#6b7280"}
                 />
                 <Text
-                  className={
-                    type === "expense"
-                      ? "text-red-400 font-semibold"
-                      : "text-gray-500"
-                  }
+                  style={{
+                    color: type === "expense" ? "#f87171" : "#6b7280",
+                    fontWeight: type === "expense" ? "600" : "400",
+                  }}
                 >
                   Expense
                 </Text>
@@ -212,11 +219,10 @@ export default function AddTransactionScreen(): JSX.Element {
                   color={type === "income" ? "#a3e637" : "#6b7280"}
                 />
                 <Text
-                  className={
-                    type === "income"
-                      ? "text-primary font-semibold"
-                      : "text-gray-500"
-                  }
+                  style={{
+                    color: type === "income" ? "#a3e637" : "#6b7280",
+                    fontWeight: type === "income" ? "600" : "400",
+                  }}
                 >
                   Income
                 </Text>
@@ -226,11 +232,18 @@ export default function AddTransactionScreen(): JSX.Element {
 
           {/* Amount Input */}
           <View className="mt-6">
-            <Text className="text-sm font-medium text-gray-400 mb-3">
+            <Text
+              style={{ color: "#9ca3af" }}
+              className="text-sm font-medium mb-3"
+            >
               Amount
             </Text>
             <View className="flex-row items-center bg-surface rounded-xl px-4 border border-white/5">
-              <DollarSign size={20} color="#a3e637" />
+              <Text
+                style={{ color: "#a3e637", fontSize: 20, fontWeight: "bold" }}
+              >
+                {currencySymbol}
+              </Text>
               <TextInput
                 value={amount}
                 onChangeText={setAmount}
@@ -238,20 +251,29 @@ export default function AddTransactionScreen(): JSX.Element {
                 placeholderTextColor="#6b7280"
                 keyboardType="decimal-pad"
                 editable={!isLoading}
-                className="flex-1 py-4 pl-3 text-2xl font-bold text-white"
+                style={{ color: "#ffffff" }}
+                className="flex-1 py-4 pl-3 text-2xl font-bold"
               />
             </View>
           </View>
 
           {/* Category Selection */}
           <View className="mt-6">
-            <Text className="text-sm font-medium text-gray-400 mb-3">
+            <Text
+              style={{ color: "#9ca3af" }}
+              className="text-sm font-medium mb-3"
+            >
               Category
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {categories.map((cat) => {
                 const Icon = cat.icon;
                 const isSelected = category === cat.name;
+                const textColor = isSelected
+                  ? type === "income"
+                    ? "#a3e637"
+                    : "#ef4444"
+                  : "#9ca3af";
                 return (
                   <Pressable
                     key={cat.name}
@@ -265,24 +287,12 @@ export default function AddTransactionScreen(): JSX.Element {
                         : "bg-surface border-white/5"
                     }`}
                   >
-                    <Icon
-                      size={16}
-                      color={
-                        isSelected
-                          ? type === "income"
-                            ? "#a3e637"
-                            : "#ef4444"
-                          : "#9ca3af"
-                      }
-                    />
+                    <Icon size={16} color={textColor} />
                     <Text
-                      className={
-                        isSelected
-                          ? type === "income"
-                            ? "text-primary font-medium"
-                            : "text-red-400 font-medium"
-                          : "text-gray-400"
-                      }
+                      style={{
+                        color: textColor,
+                        fontWeight: isSelected ? "500" : "400",
+                      }}
                     >
                       {cat.name}
                     </Text>
@@ -300,14 +310,18 @@ export default function AddTransactionScreen(): JSX.Element {
                 placeholder="Or type custom category..."
                 placeholderTextColor="#6b7280"
                 editable={!isLoading}
-                className="flex-1 py-3 pl-3 text-white"
+                style={{ color: "#ffffff" }}
+                className="flex-1 py-3 pl-3"
               />
             </View>
           </View>
 
           {/* Note Input */}
           <View className="mt-6">
-            <Text className="text-sm font-medium text-gray-400 mb-3">
+            <Text
+              style={{ color: "#9ca3af" }}
+              className="text-sm font-medium mb-3"
+            >
               Note (optional)
             </Text>
             <View className="flex-row items-start bg-surface rounded-xl px-4 border border-white/5">
@@ -320,7 +334,8 @@ export default function AddTransactionScreen(): JSX.Element {
                 multiline
                 numberOfLines={3}
                 editable={!isLoading}
-                className="flex-1 py-3 pl-3 text-white min-h-[80px]"
+                style={{ color: "#ffffff" }}
+                className="flex-1 py-3 pl-3 min-h-[80px]"
                 textAlignVertical="top"
               />
             </View>
@@ -328,7 +343,7 @@ export default function AddTransactionScreen(): JSX.Element {
         </ScrollView>
 
         {/* Save Button */}
-        <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-dark border-t border-white/5">
+        <View className="px-5 pb-24 pt-4 bg-dark border-t border-white/5">
           <Pressable
             onPress={handleSave}
             disabled={isLoading}
