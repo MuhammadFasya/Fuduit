@@ -309,10 +309,10 @@ export default function TransactionsScreen() {
                             className="font-bold text-base text-white"
                             numberOfLines={1}
                           >
-                            {transaction.note || transaction.category}
+                            {transaction.category}
                           </Text>
                           <Text className="text-xs font-medium text-white/50 mt-0.5">
-                            {transaction.category} •{" "}
+                            {transaction.note ? `${transaction.note} • ` : ""}
                             {formatTime(transaction.date)}
                           </Text>
                         </View>

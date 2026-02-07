@@ -140,8 +140,8 @@ export default function InsightsScreen() {
           type: "income",
           emoji: "🚀",
           label: "Income",
-          title: `${recentIncome.note || recentIncome.category} just landed.`,
-          subtitle: recentIncome.category,
+          title: `${recentIncome.category} just landed.`,
+          subtitle: recentIncome.note || recentIncome.category,
           amount: `+${formatCurrency(recentIncome.amount)}`,
           actionLabel: "Stash for Taxes",
         });

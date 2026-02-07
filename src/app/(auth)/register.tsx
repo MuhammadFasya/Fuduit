@@ -9,17 +9,19 @@
   ScrollView,
   Alert,
   Image,
+  StyleSheet,
 } from "react-native";
 import { useState } from "react";
 import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react-native";
+import { Mail, Lock, Eye, EyeOff, User } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { GoogleIcon, AppleIcon } from "@/components/ui/SocialIcons";
 
 export default function RegisterScreen() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -30,8 +32,13 @@ export default function RegisterScreen() {
   const { register } = useAuth();
 
   const handleRegister = async () => {
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       setError("Please fill in all fields");
+      return;
+    }
+
+    if (name.length < 2) {
+      setError("Name must be at least 2 characters");
       return;
     }
 
@@ -47,7 +54,7 @@ export default function RegisterScreen() {
 
     setError(null);
     setLoading(true);
-    const result = await register(email, password);
+    const result = await register(email, password, name.trim());
     setLoading(false);
     if (!result.success && result.error) {
       setError(result.error.message);
@@ -107,16 +114,31 @@ export default function RegisterScreen() {
             </View>
 
             {/* Form */}
-            <View className="gap-5">
+            <View style={styles.formContainer}>
+              {/* Name Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Full Name</Text>
+                <View style={styles.inputContainer}>
+                  <User size={20} color="#b3c794" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="John Doe"
+                    placeholderTextColor="#b3c794"
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                    editable={!loading}
+                  />
+                </View>
+              </View>
+
               {/* Email Input */}
-              <View className="gap-2">
-                <Text className="text-white text-sm font-semibold pl-2">
-                  Email
-                </Text>
-                <View className="flex-row items-center bg-surface border border-border rounded-full h-[56px] px-5">
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email</Text>
+                <View style={styles.inputContainer}>
                   <Mail size={20} color="#b3c794" />
                   <TextInput
-                    className="flex-1 ml-3 text-white text-base"
+                    style={styles.textInput}
                     placeholder="hello@freelancer.com"
                     placeholderTextColor="#b3c794"
                     value={email}
@@ -129,14 +151,12 @@ export default function RegisterScreen() {
               </View>
 
               {/* Password Input */}
-              <View className="gap-2">
-                <Text className="text-white text-sm font-semibold pl-2">
-                  Password
-                </Text>
-                <View className="flex-row items-center bg-surface border border-border rounded-full h-[56px] px-5">
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <View style={styles.inputContainer}>
                   <Lock size={20} color="#b3c794" />
                   <TextInput
-                    className="flex-1 ml-3 text-white text-base"
+                    style={styles.textInput}
                     placeholder="Min. 8 characters"
                     placeholderTextColor="#b3c794"
                     value={password}
@@ -155,14 +175,12 @@ export default function RegisterScreen() {
               </View>
 
               {/* Confirm Password Input */}
-              <View className="gap-2">
-                <Text className="text-white text-sm font-semibold pl-2">
-                  Confirm Password
-                </Text>
-                <View className="flex-row items-center bg-surface border border-border rounded-full h-[56px] px-5">
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <View style={styles.inputContainer}>
                   <Lock size={20} color="#b3c794" />
                   <TextInput
-                    className="flex-1 ml-3 text-white text-base"
+                    style={styles.textInput}
                     placeholder="Re-enter password"
                     placeholderTextColor="#b3c794"
                     value={confirmPassword}
@@ -183,37 +201,33 @@ export default function RegisterScreen() {
               </View>
 
               {/* Error Message */}
-              {error && (
-                <Text className="text-error text-center text-sm">{error}</Text>
-              )}
+              {error && <Text style={styles.errorText}>{error}</Text>}
 
               {/* Register Button */}
               <Pressable
-                className="bg-primary h-[56px] rounded-full items-center justify-center mt-3"
+                style={styles.registerButton}
                 onPress={handleRegister}
                 disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color="#1b2111" />
                 ) : (
-                  <Text className="text-dark text-lg font-bold">Register</Text>
+                  <Text style={styles.registerButtonText}>Register</Text>
                 )}
               </Pressable>
             </View>
 
             {/* Divider */}
-            <View className="flex-row items-center my-8">
-              <View className="flex-1 h-px bg-border" />
-              <Text className="text-gray mx-4 text-xs uppercase tracking-wider">
-                Or continue with
-              </Text>
-              <View className="flex-1 h-px bg-border" />
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>Or continue with</Text>
+              <View style={styles.dividerLine} />
             </View>
 
             {/* Social Buttons */}
-            <View className="flex-row justify-center gap-4">
+            <View style={styles.socialContainer}>
               <Pressable
-                className="w-14 h-14 rounded-full bg-surface border border-border items-center justify-center opacity-50"
+                style={styles.socialButton}
                 onPress={() =>
                   Alert.alert(
                     "Coming Soon",
@@ -224,7 +238,7 @@ export default function RegisterScreen() {
                 <GoogleIcon size={24} />
               </Pressable>
               <Pressable
-                className="w-14 h-14 rounded-full bg-surface border border-border items-center justify-center opacity-50"
+                style={styles.socialButton}
                 onPress={() =>
                   Alert.alert(
                     "Coming Soon",
@@ -237,13 +251,13 @@ export default function RegisterScreen() {
             </View>
 
             {/* Login Link */}
-            <View className="flex-row justify-center mt-auto pt-8 pb-4">
-              <Text className="text-gray text-sm">
+            <View style={styles.loginLinkContainer}>
+              <Text style={styles.loginLinkText}>
                 Already have an account?{" "}
               </Text>
               <Link href="/login" asChild>
                 <Pressable>
-                  <Text className="text-primary text-sm font-bold">Login</Text>
+                  <Text style={styles.loginLinkAction}>Login</Text>
                 </Pressable>
               </Link>
             </View>
@@ -253,3 +267,101 @@ export default function RegisterScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  formContainer: {
+    gap: 20,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  inputLabel: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    paddingLeft: 8,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1e2b15",
+    borderWidth: 1,
+    borderColor: "#3c5a26",
+    borderRadius: 28,
+    height: 56,
+    paddingHorizontal: 20,
+  },
+  textInput: {
+    flex: 1,
+    marginLeft: 12,
+    color: "#ffffff",
+    fontSize: 16,
+  },
+  errorText: {
+    color: "#f472b6",
+    textAlign: "center",
+    fontSize: 14,
+  },
+  registerButton: {
+    backgroundColor: "#a3e637",
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+  },
+  registerButtonText: {
+    color: "#1b2111",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 32,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#3c5a26",
+  },
+  dividerText: {
+    color: "#b3c794",
+    marginHorizontal: 16,
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  socialContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+  },
+  socialButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#1e2b15",
+    borderWidth: 1,
+    borderColor: "#3c5a26",
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.5,
+  },
+  loginLinkContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: "auto",
+    paddingTop: 32,
+    paddingBottom: 16,
+  },
+  loginLinkText: {
+    color: "#b3c794",
+    fontSize: 14,
+  },
+  loginLinkAction: {
+    color: "#a3e637",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+});

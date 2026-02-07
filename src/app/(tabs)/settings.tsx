@@ -8,6 +8,7 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -28,6 +29,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useTransactionStore } from "@/store/transactionStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { resetDatabase } from "@/db";
+import { ProfileEditModal } from "@/components/ui/ProfileEditModal";
 
 interface SettingItemProps {
   icon: React.ReactNode;
@@ -82,6 +84,7 @@ export default function SettingsScreen(): JSX.Element {
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [appearance, setAppearance] = useState("Dark");
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
 
   const handleNotificationToggle = (): void => {
     Alert.alert(
@@ -168,33 +171,19 @@ export default function SettingsScreen(): JSX.Element {
   };
 
   const handleEditProfile = (): void => {
-    Alert.alert("Edit Profile", "Choose what you want to update:", [
-      {
-        text: "Change Username",
-        onPress: () => {
-          Alert.alert(
-            "Coming Soon",
-            "Username editing will be available in a future update."
-          );
-        },
-      },
-      {
-        text: "Change Profile Picture",
-        onPress: () => {
-          Alert.alert(
-            "Coming Soon",
-            "Profile picture editing will be available in a future update."
-          );
-        },
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
+    setProfileModalVisible(true);
   };
 
   const userName = user?.displayName || user?.email?.split("@")[0] || "User";
 
   return (
     <SafeAreaView className="flex-1 bg-dark" edges={["top"]}>
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        visible={profileModalVisible}
+        onClose={() => setProfileModalVisible(false)}
+      />
+
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 120 }}

@@ -270,9 +270,10 @@ export default function HomeScreen() {
                     </View>
                     <View>
                       <Text className="text-white font-bold text-base">
-                        {transaction.note || transaction.category}
+                        {transaction.category}
                       </Text>
                       <Text className="text-white/40 text-xs">
+                        {transaction.note ? `${transaction.note} • ` : ""}
                         {new Date(transaction.date).toLocaleDateString(
                           "en-US",
                           {
