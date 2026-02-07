@@ -33,12 +33,20 @@
     "experiments": {
       "typedRoutes": true
     },
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "updates": {
       "enabled": false
     },
     "runtimeVersion": {
       "policy": "sdkVersion"
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "9394cb67-aa47-40ff-b93c-d0d871ed4f99"
+      }
     }
   }
 }
